@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions: {}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      with:
+        persist-credentials: false
+
+    - name: Setup node
+      uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+      with:
+        node-version: 16
+        cache: yarn
+        cache-dependency-path: ./yarn.lock
+
+    - run: yarn
+    - run: yarn compile
+    - run: yarn package
+    - run: yarn test
+
+    - name: Set up HLint
+      uses: haskell-actions/hlint-setup@fe9cd1cd1af94a23900c06738e73f6ddb092966a # v2.4.10
+
+    - run: hlint --version
+
+    - name: Self test
+      uses: ./
+      with:
+        path: ./test/Example.hs
